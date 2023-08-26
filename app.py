@@ -1,15 +1,32 @@
+from datetime import datetime
+from uuid import uuid4
 import os
-
+from dotenv import load_dotenv
+import yaml
 import openai
+import requests
 
+# configure app
+event_id = f"{datetime.now().strftime('%d%m%Y-%H%M%S')}-{str(uuid4())}"
+load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
+try:
+    with open('metadata.yml', 'r', encoding='UTF-8') as metadata_yml:
+        metadata = yaml.safe_load(metadata_yml)
+except yaml.YAMLError as exc:
+    raise RuntimeError('Error loading metadata yml') from exc
 
+# request image using openai
 response = openai.Image.create(
-  prompt="a white siamese cat",
-  n=1,
-  size="256x256"
+    prompt=metadata['image']['prompt'],
+    n=metadata['image']['count'],
+    size=metadata['image']['size']
 )
+
+# download generated image as png
 image_url = response['data'][0]['url']
 print(image_url)
-
-https://oaidalleapiprodscus.blob.core.windows.net/private/org-OKlHcGEWPrcQcdzRYNUXA7PP/user-4tMxmVauCjB085nx40emdbWo/img-8n50hfFi4W4aODPMptlSjfPh.png?st=2023-08-24T16%3A45%3A22Z&se=2023-08-24T18%3A45%3A22Z&sp=r&sv=2021-08-06&sr=b&rscd=inline&rsct=image/png&skoid=6aaadede-4fb3-4698-a8f6-684d7786b067&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2023-08-23T18%3A57%3A06Z&ske=2023-08-24T18%3A57%3A06Z&sks=b&skv=2021-08-06&sig=U3hKRLFDapTGc0Z3d7bMBIZskQzBkPkwLn9mp7CkdJY%3D
+data = requests.get(image_url, timeout=metadata['http']['timeout']).content
+with open(f"image-{event_id}.png", 'wb', encoding='UTF-8') as image_file:
+    image_file.write(data)
+    image_file.close()
