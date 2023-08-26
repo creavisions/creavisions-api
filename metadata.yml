@@ -2,5 +2,5 @@ http:
   timeout: 10
 image:
   count: 1
-  prompt: a white siamese cat
+  prompt: boy playing rugby
   size: 256x256

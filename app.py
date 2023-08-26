@@ -27,6 +27,6 @@ response = openai.Image.create(
 image_url = response['data'][0]['url']
 print(image_url)
 data = requests.get(image_url, timeout=metadata['http']['timeout']).content
-with open(f"image-{event_id}.png", 'wb', encoding='UTF-8') as image_file:
+with open(f"image-{event_id}.png", 'wb') as image_file:
     image_file.write(data)
     image_file.close()
